@@ -49,7 +49,7 @@ after_initialize do
     end
 
     if num == 1
-      "`d#{size}#{delta_str}:" + sum + "`"
+      "`d#{size}#{delta_str}:" + sum.to_s + "`"
     elsif SiteSetting.dice_roller_sum_rolls
       "`#{num}d#{size}#{delta_str}:" + result[1..-1] + "= #{sum}`"
     else

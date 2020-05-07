@@ -4,14 +4,17 @@ Adds a simple dice roller for play-by-post RPGs
 
 ## Usage
 
-In a post, type `[roll 2d6]` - when the post it submitted, it will calculate
-the rolls.
+In a post, type `[roll 2d6]` - when the post is submitted, the plugin
+will calculate the rolls. As standard, the post will become owned by
+System to prevent further editing; functionality to reply with a new
+post is under development.
 
 Roll any number of dice of any size - `[roll 5d10]` `[roll 3d4]` `[roll d20]`
 all do what you'd expect.
 
-Also `[roll 4d6+4]`, `[roll d10-1[`, `[roll d%]` and `[roll 4dF]` (a
-dF has the range -1..1).
+Also `[roll d%]` and `[roll 4dF]` (a dF has the range -1..1).
+
+Also `[roll 4d6+4]`, `[roll d10-1[`.
 
 ## Installation
 
@@ -46,5 +49,4 @@ Some things are clearly not done:
 
  * A preview view to show that dice will be rolled
  * Reply with dice in a new post rather than editing the existing one
- * [testing] When editing the existing post, indicate the original poster somehow
  * Admin-side configurations
