@@ -46,5 +46,5 @@ Some things are clearly not done:
 
  * A preview view to show that dice will be rolled
  * Reply with dice in a new post rather than editing the existing one
- * When editing the existing post, indicate the original poster somehow
+ * [testing] When editing the existing post, indicate the original poster somehow
  * Admin-side configurations
