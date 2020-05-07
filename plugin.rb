@@ -40,7 +40,7 @@ after_initialize do
         end
 
         result = ''
-        sum = 0
+        sum = delta
 
         (1..num).each do |n|
             roll = rand(low..high)
@@ -67,7 +67,7 @@ after_initialize do
     end
 
     on(:post_created) do |post, params|
-        if SiteSetting.dice_roller_enabled and post.raw =~ /\[ ?roll *([1-9][0-9]*d[F%1-9][0-9]*([-+][1-9][0-9]+)?) *\]/i
+        if SiteSetting.dice_roller_enabled and post.raw =~ /\[ ?roll *([0-9]*d[F%1-9][0-9]*([-+][1-9][0-9]*)?) *\]/i
             if SiteSetting.dice_roller_inline_rolls
                 inline_roll(post)
             else
