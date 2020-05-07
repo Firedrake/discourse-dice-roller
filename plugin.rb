@@ -58,8 +58,8 @@ after_initialize do
   end
 
   def inline_roll(post)
+    post.raw = "@#{post.user.username} asked for a die roll:\n" + post.raw
     post.raw.gsub!(/\[ ?roll *([1-9]*d[F%0-9]+([-+][0-9]+)?) *\]/i) { |c| roll_dice(c) }
-    post.raw.gsub!(/^/,"@#{post.user.username} asked for a die roll:\n")
     post.set_owner(User.find(-1), post.user)
   end
 
