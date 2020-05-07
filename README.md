@@ -14,7 +14,7 @@ all do what you'd expect.
 
 Also `[roll d%]` and `[roll 4dF]` (a dF has the range -1..1).
 
-Also `[roll 4d6+4]`, `[roll d10-1[`.
+Also `[roll 4d6+4]`, `[roll d10-1]`.
 
 ## Installation
 
