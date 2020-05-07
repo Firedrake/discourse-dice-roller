@@ -10,6 +10,9 @@ the rolls.
 Roll any number of dice of any size - `[roll 5d10]` `[roll 3d4]` `[roll d20]`
 all do what you'd expect.
 
+Also `[roll 4d6+4]`, `[roll d10-1[`, `[roll d%]` and `[roll 4dF]` (a
+dF has the range -1..1).
+
 ## Installation
 
  * Add the plugin's repo url to your container's app.yml file
@@ -22,23 +25,26 @@ hooks:
         cmd:
           - mkdir -p plugins
           - git clone https://github.com/discourse/docker_manager.git
-          - git clone https://github.com/Dorthu/discourse-dice-roller.git
+          - git clone https://github.com/Firedrake/discourse-dice-roller.git
 ```
 
  * Rebuild the container
 
 ```
-cd /var/docker
+cd /var/discourse
 git pull
 ./launcher rebuild app
 ```
 
 ## Disclaimer
 
+Modified from Dorthu's code. I don't know Ruby.
+
 **THIS IS A WORK IN PROGRESS**
 
 Some things are clearly not done:
 
  * A preview view to show that dice will be rolled
- * Ability to stop users from editing posts when dice are rolled
+ * Reply with dice in a new post rather than editing the existing one
+ * When editing the existing post, indicate the original poster somehow
  * Admin-side configurations
