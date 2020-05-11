@@ -7,7 +7,7 @@
 after_initialize do
 
   def roll_dice(type)
-    num, size, delta = type.match(/([0-9]*)d([0-9F%]+)([-+][0-9]+)?/i).captures
+    num, size, delta = type.match(/([0-9]*) *d *([0-9F%]+) *([-+] *[0-9]+)?/i).captures
 
     if num.nil? or num.empty?
       num = 1
@@ -22,6 +22,7 @@ after_initialize do
     if delta.nil? or delta.empty?
       delta = 0
     else
+      delta.gsub!(/ +/,'')
       delta = delta.to_i
     end
 
@@ -39,7 +40,7 @@ after_initialize do
       high = 1
     elsif size=="%"
       high = 100
-    else
+    elsif size =~ /^[0-9]+$/
       high = size.to_i
     end
 
@@ -63,7 +64,7 @@ after_initialize do
 
   def inline_roll(post)
     post.raw = "@#{post.user.username} asked for a die roll:\n" + post.raw
-    post.raw.gsub!(/\[ ?roll *([0-9]*d[F%0-9]+([-+][0-9]+)?) *\]/i) { |c| roll_dice(c) }
+    post.raw.gsub!(/\[ ?roll *([0-9]* *d *[F%0-9]+ *([-+] *[0-9]+)?) *\]/i) { |c| roll_dice(c) }
     post.set_owner(User.find(-1), post.user)
   end
 
@@ -72,7 +73,7 @@ after_initialize do
   end
 
   on(:post_created) do |post, params|
-    if SiteSetting.dice_roller_enabled and post.raw =~ /\[ ?roll *([0-9]*d[F%1-9][0-9]*([-+][1-9][0-9]*)?) *\]/i
+    if SiteSetting.dice_roller_enabled and post.raw =~ /\[ ?roll *([0-9]* *d *[F%1-9][0-9]* *([-+] *[1-9][0-9]*)?) *\]/i
       if SiteSetting.dice_roller_inline_rolls
         inline_roll(post)
       else
