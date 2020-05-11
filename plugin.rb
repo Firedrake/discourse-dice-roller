@@ -7,12 +7,16 @@
 after_initialize do
 
   def roll_dice(type)
-    num, size, delta = type.match(/([1-9]*)d([0-9F%]+)([-+][0-9]+)?/i).captures
+    num, size, delta = type.match(/([0-9]*)d([0-9F%]+)([-+][0-9]+)?/i).captures
 
     if num.nil? or num.empty?
       num = 1
     else
       num = num.to_i
+    end
+
+    if num > 256
+      num = 256
     end
 
     if delta.nil? or delta.empty?
@@ -59,7 +63,7 @@ after_initialize do
 
   def inline_roll(post)
     post.raw = "@#{post.user.username} asked for a die roll:\n" + post.raw
-    post.raw.gsub!(/\[ ?roll *([1-9]*d[F%0-9]+([-+][0-9]+)?) *\]/i) { |c| roll_dice(c) }
+    post.raw.gsub!(/\[ ?roll *([0-9]*d[F%0-9]+([-+][0-9]+)?) *\]/i) { |c| roll_dice(c) }
     post.set_owner(User.find(-1), post.user)
   end
 
