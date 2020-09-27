@@ -1,3 +1,4 @@
+# coding: utf-8
 # name: dice_roller
 # about: allows in-post dice rolling, for play-by-post RPGs
 # version: 0.0.1
@@ -10,7 +11,7 @@ after_initialize do
     num, size, delta = type.match(/([0-9]*) *d *([0-9F%]+) *([-+] *[0-9]+)?/i).captures
 
     if num.nil? or num.empty?
-      num = 1
+      num = 0
     else
       num = num.to_i
     end
@@ -62,9 +63,76 @@ after_initialize do
     end
   end
 
+  def roll_stress(type)
+    num, delta = type.match(/\[ ?stress *([0-9]+) *([-+] *[0-9]+)? *\]/i).captures
+
+    if num.nil? or num.empty?
+      num = 1
+    else
+      num = num.to_i
+    end
+
+    if num > 256
+      num = 256
+    end
+
+    if delta.nil? or delta.empty?
+      delta = 0
+    else
+      delta.gsub!(/ +/,'')
+      delta = delta.to_i
+    end
+
+    delta_str=delta.to_s
+    if delta>0
+      delta_str="+" + delta_str
+    elsif delta==0
+      delta_str=""
+    end
+
+    mul=1
+    first=1
+    done=0
+    result = "stress #{num}#{delta_str}: "
+    sum = delta
+
+    while done==0 do
+      roll = rand(1..10)
+      if first == 1 and roll == 10
+        botch=0
+        if num > 0
+          (1..num).each do
+            sroll = rand(1..10)
+            if sroll == 10
+              botch += 1
+            end
+          end
+        end
+        if botch > 0
+          result += "Botch: #{botch}/#{num}"
+        else
+          result += "0 (no botch), #{delta_str} = #{sum}"
+        end
+        done=1 
+      elsif roll == 1
+        mul *= 2
+      else
+        rm = roll * mul
+        sum += rm
+        result += "#{mul} × #{roll} = #{rm}, #{delta_str} = total #{sum}"
+        done=1
+      end
+      first=0
+    end
+
+    "`" + result + "`"
+
+  end
+
   def inline_roll(post)
     post.raw = "@#{post.user.username} asked for a die roll:\n" + post.raw
     post.raw.gsub!(/\[ ?roll *([0-9]* *d *[F%0-9]+ *([-+] *[0-9]+)?) *\]/i) { |c| roll_dice(c) }
+    post.raw.gsub!(/\[ ?stress *([0-9]+ *([-+] *[0-9]+)?) *\]/i) { |c| roll_stress(c) }
     post.set_owner(User.find(-1), post.user)
   end
 
@@ -73,7 +141,7 @@ after_initialize do
   end
 
   on(:post_created) do |post, params|
-    if SiteSetting.dice_roller_enabled and post.raw =~ /\[ ?roll *([0-9]* *d *[F%1-9][0-9]* *([-+] *[1-9][0-9]*)?) *\]/i
+    if SiteSetting.dice_roller_enabled and (post.raw =~ /\[ ?roll *([0-9]* *d *[F%1-9][0-9]* *([-+] *[1-9][0-9]*)?) *\]/i or post.raw =~ /\[ ?stress *([0-9]+ *([-+] *[0-9]+)?) *\]/i)
       if SiteSetting.dice_roller_inline_rolls
         inline_roll(post)
       else
