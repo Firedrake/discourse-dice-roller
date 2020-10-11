@@ -11,13 +11,24 @@ after_initialize do
     num, size, delta = type.match(/([0-9]*) *d *([0-9F%]+) *([-+] *[0-9]+)?/i).captures
 
     if num.nil? or num.empty?
-      num = 0
+      num = 1
     else
       num = num.to_i
     end
 
     if num > 256
       num = 256
+    end
+
+    low = 1
+    high = 6
+    if size=="F"
+      low = -1
+      high = 1
+    elsif size=="%"
+      high = 100
+    elsif size =~ /^[0-9]+$/
+      high = size.to_i
     end
 
     if delta.nil? or delta.empty?
@@ -34,37 +45,26 @@ after_initialize do
       delta_str=""
     end
 
-    low = 1
-    high = 6
-    if size=="F"
-      low = -1
-      high = 1
-    elsif size=="%"
-      high = 100
-    elsif size =~ /^[0-9]+$/
-      high = size.to_i
-    end
-
-    result = ''
+    result = Array.new
     sum = delta
 
     (1..num).each do |n|
       roll = rand(low..high)
-      result += "+ #{roll} "
+      result.push(roll)
       sum += roll
     end
 
     if num == 1
-      "`d#{size}#{delta_str}: " + sum.to_s + "`"
+      "`d#{size}#{delta_str}: #{sum}`"
     elsif SiteSetting.dice_roller_sum_rolls
-      "`#{num}d#{size}#{delta_str}:" + result[1..-1] + "= #{sum}`"
+      "`#{num}d#{size}#{delta_str}: #{result.join(' + ')} = #{sum}`"
     else
-      "`#{num}d#{size}#{delta_str}:" + result[1..-1] + "`"
+      "`#{num}d#{size}#{delta_str}:#{result.join(' + ')}`"
     end
   end
 
   def roll_stress(type)
-    num, delta = type.match(/\[ ?stress *([0-9]+) *([-+] *[0-9]+)? *\]/i).captures
+    num, delta = type.match(/([0-9]+) *([-+] *[0-9]+)?/i).captures
 
     if num.nil? or num.empty?
       num = 1
@@ -131,8 +131,8 @@ after_initialize do
 
   def inline_roll(post)
     post.raw = "@#{post.user.username} asked for a die roll:\n" + post.raw
-    post.raw.gsub!(/\[ ?roll *([0-9]* *d *[F%0-9]+ *([-+] *[0-9]+)?) *\]/i) { |c| roll_dice(c) }
-    post.raw.gsub!(/\[ ?stress *([0-9]+ *([-+] *[0-9]+)?) *\]/i) { |c| roll_stress(c) }
+    post.raw.gsub!(/\[ *roll [^\]]*?\]/i) { |c| roll_dice(c) }
+    post.raw.gsub!(/\[ *stress [^\]]*?\]/i) { |c| roll_stress(c) }
     post.set_owner(User.find(-1), post.user)
   end
 
@@ -141,7 +141,7 @@ after_initialize do
   end
 
   on(:post_created) do |post, params|
-    if SiteSetting.dice_roller_enabled and (post.raw =~ /\[ ?roll *([0-9]* *d *[F%1-9][0-9]* *([-+] *[1-9][0-9]*)?) *\]/i or post.raw =~ /\[ ?stress *([0-9]+ *([-+] *[0-9]+)?) *\]/i)
+    if SiteSetting.dice_roller_enabled and (post.raw =~ /\[ *roll *([0-9]* *d *[F%1-9][0-9]* *([-+] *[1-9][0-9]*)?) *\]/i or post.raw =~ /\[ *stress *([0-9]+ *([-+] *[0-9]+)?) *\]/i)
       if SiteSetting.dice_roller_inline_rolls
         inline_roll(post)
       else

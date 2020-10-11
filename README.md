@@ -7,14 +7,19 @@ Adds a simple dice roller for play-by-post RPGs
 In a post, type `[roll 2d6]` - when the post is submitted, the plugin
 will calculate the rolls. As standard, the post will become owned by
 System to prevent further editing; functionality to reply with a new
-post is under development.
+post instead is under development.
 
-Roll any number of dice of any size - `[roll 5d10]` `[roll 3d4]` `[roll d20]`
-all do what you'd expect.
+Roll any reasonable number of dice of any size - `[roll 5d10]` `[roll
+3d4]` `[roll d20]` all do what you'd expect.
 
-Also `[roll d%]` and `[roll 4dF]` (a dF has the range -1..1).
+Also `[roll d%]` and `[roll 4dF]` (a dF, used in FUDGE and FATE, has
+the linear range -1..1).
 
-Also `[roll 4d6+4]`, `[roll d10-1]`.
+Also add or subtract integers: `[roll 4d6+4]`, `[roll d10-1]`.
+
+Also `[stress 4]`, `[stress 4+7]` – this is an Ars Magica stress die.
+First parameter is the number of botch dice to be rolled, second is
+added to the total.
 
 ## Installation
 
@@ -41,7 +46,9 @@ git pull
 
 ## Disclaimer
 
-Modified from Dorthu's code. I don't know Ruby.
+[dorthu](https://github.com/dorthu/discourse-dice-roller) wrote this
+originally, though most of the actual core code has been replaced and
+I've extended it quite a bit.
 
 **THIS IS A WORK IN PROGRESS**
 
