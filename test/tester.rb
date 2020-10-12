@@ -77,9 +77,9 @@ class TestDice < Test::Unit::TestCase
 
   def test_postify_3d
     post=Post.new('[roll 3d6]')
-    $onblock.call(post)
     srand(1602262750)
-    assert_match(/USERNAME asked for a die roll:.*`3d6: 2 \+ 3 \+ 5 = 10`/m,post.raw)
+    $onblock.call(post)
+    assert_match(/USERNAME asked for a die roll:.*`3d6: 4 \+ 2 \+ 3 = 9`/m,post.raw)
   end
 
   def test_fudge
