@@ -124,15 +124,186 @@ after_initialize do
       end
       first=0
     end
-
     "`" + result + "`"
+  end
 
+  def roll_genesys(type)
+    dice=Hash.new
+    dn={ 'U' => 'boost', 'G' => 'ability', 'Y' => 'proficiency',
+         'B' => 'setback', 'P' => 'difficulty', 'R' => 'challenge',
+         'W' => 'force'}
+    rs=['success','failure','advantage','threat','triumph','threat']
+    dn.keys.each do |i|
+      dice[i]=0
+    end
+    dtype=''
+    type.split(/([A-Z]|[0-9]+)/i).each do |i|
+      if i != ''
+        if i.to_i > 0
+          if dice.has_key?(dtype)
+            dice[dtype] += i.to_i-1
+          end
+        else
+          j=i
+          j.capitalize
+          if dice.has_key?(j)
+            dtype=j
+            dice[dtype] += 1
+          end
+        end
+      end
+    end
+    reslist=Array.new
+    restext=Array.new
+    dice.keys.each do |i|
+      if dice[i]>0
+        1.upto(dice[i]).each do
+          r=Hash.new
+          if i == 'U'
+            roll=rand(1..6)
+            if roll==3
+              r={'success' => 1}
+            elsif roll==4
+              r={'success' => 1, 'advantage' => 1}
+            elsif roll==5
+              r={'advantage' => 2}
+            elsif roll==6
+              r={'advantage' => 1}
+            end
+          elsif i == 'G'
+            roll=rand(1..8)
+            if roll==2 or roll==3
+              r={'success' => 1}
+            elsif roll==4
+              r={'success' => 2}
+            elsif roll==5 or roll==6
+              r={'advantage' => 1}
+            elsif roll==7
+              r={'success' => 1, 'advantage' => 1}
+            elsif roll==8
+              r={'advantage' => 2}
+            end
+          elsif i == 'Y'
+            roll=rand(1..12)
+            if roll==2 or roll==3
+              r={'success' => 1}
+            elsif roll==4 or roll==5
+              r={'success' => 2}
+            elsif roll==6
+              r={'advantage' => 1}
+            elsif roll==7 or roll==8 or roll==9
+              r={'success' => 1, 'advantage' => 1}
+            elsif roll==10 or roll==11
+              r={'advantage' => 2}
+            elsif roll==12
+              r={'triumph' => 1}
+            end
+          elsif i == 'B'
+            roll=rand(1..6)
+            if roll==3 or roll==4
+              r={'failure' => 1}
+            elsif roll==5 or roll==6
+              r={'threat' => 1}
+            end
+          elsif i == 'P'
+            roll=rand(1..8)
+            if roll==2
+              r={'failure' => 1}
+            elsif roll==3
+              r={'failure' => 2}
+            elsif roll==4 or roll==5 or roll==6
+              r={'threat' => 1}
+            elsif roll==7
+              r={'threat' => 2}
+            elsif roll==8
+              r={'advantage' => 1,'threat' => 1}
+            end
+          elsif i == 'R'
+            roll=rand(1..12)
+            if roll==2 or roll==3
+              r={'failure' => 1}
+            elsif roll==4 or roll==5
+              r={'failure' => 2}
+            elsif roll==6 or roll==7
+              r={'threat' => 1}
+            elsif roll==8 or roll==9
+              r={'failure' => 1, 'threat' => 1}
+            elsif roll==10 or roll==11
+              r={'threat' => 2}
+            elsif roll==12
+              r={'despair' => 1}
+            end
+          elsif i == 'W'
+            roll=rand(1..12)
+            if roll<7
+              r={'darkside' => 1}
+            elsif roll==7
+              r={'darkside' => 2}
+            elsif roll<10
+              r={'lightside' => 1}
+            else
+              r={'lightside' => 2}
+            end
+          end
+          reslist.push(r)
+          restext.push("#{i} #{dn[i]}: " + stringify_gendice(r))
+        end
+      end
+    end
+    total=Hash.new
+    total.default=(0)
+    reslist.each do |r|
+      total.merge!(r) {|k,o,n| o+n}
+    end
+    if total.has_key?('triumph')
+      total['success'] += total['triumph']
+    end
+    if total.has_key?('despair')
+      total['failure'] += total['despair']
+    end
+    if total.has_key?('success') and total.has_key?('failure')
+      a=total['success']-total['failure']
+      if a>0
+        total.delete('failure')
+        total['success']=a
+      elsif a<0
+        total.delete('success')
+        total['failure']=-a
+      else
+        total.delete('success')
+        total.delete('failure')
+      end
+    end
+    if total.has_key?('advantage') and total.has_key?('threat')
+      a=total['advantage']-total['threat']
+      if a>0
+        total.delete('threat')
+        total['advantage']=a
+      elsif a<0
+        total.delete('advantage')
+        total['threat']=-a
+      else
+        total.delete('advantage')
+        total.delete('threat')
+      end
+    end
+    restext.push("total: " + stringify_gendice(total))
+    return "`" + restext.join("`\n`") + "`"
+  end
+
+  def stringify_gendice(r)
+    t='blank'
+    unless r.empty?()
+      t=r.keys.map {|k| r[k]==1?k:"#{r[k]} × #{k}"}.join(', ')
+    end
+    return t
   end
 
   def inline_roll(post)
     post.raw = "@#{post.user.username} asked for a die roll:\n" + post.raw
     post.raw.gsub!(/\[ *roll [^\]]*?\]/i) { |c| roll_dice(c) }
     post.raw.gsub!(/\[ *stress [^\]]*?\]/i) { |c| roll_stress(c) }
+    post.raw.gsub!(/\[ *genesys [^\]]*?\]/i) { |c| roll_genesys(c) }
     post.set_owner(User.find(-1), post.user)
   end
 
@@ -141,7 +312,7 @@ after_initialize do
   end
 
   on(:post_created) do |post, params|
-    if SiteSetting.dice_roller_enabled and (post.raw =~ /\[ *roll *([0-9]* *d *[F%1-9][0-9]* *([-+] *[1-9][0-9]*)?) *\]/i or post.raw =~ /\[ *stress *([0-9]+ *([-+] *[0-9]+)?) *\]/i)
+    if SiteSetting.dice_roller_enabled and (post.raw =~ /\[ *roll *([0-9]* *d *[F%1-9][0-9]* *([-+] *[1-9][0-9]*)?) *\]/i or post.raw =~ /\[ *stress *([0-9]+ *([-+] *[0-9]+)?) *\]/i or post.raw =~ /\[ *genesys [A-Z0-9]+ *\]/i)
       if SiteSetting.dice_roller_inline_rolls
         inline_roll(post)
       else

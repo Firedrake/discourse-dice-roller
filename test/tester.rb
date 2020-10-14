@@ -53,7 +53,6 @@ require_relative "../plugin"
 require "test/unit"
 
 class TestDice < Test::Unit::TestCase
-
   
   def test_d
     srand(1602262750)
@@ -75,7 +74,7 @@ class TestDice < Test::Unit::TestCase
     assert_match(/^`3d6: 4 \+ 2 \+ 3 = 9`$/,roll_dice("3d6"))
   end
 
-  def test_postify_3d
+  def test_3d_post
     post=Post.new('[roll 3d6]')
     srand(1602262750)
     $onblock.call(post)
@@ -105,6 +104,38 @@ class TestDice < Test::Unit::TestCase
   def test_stress_botch
     srand(1602262751)
     assert_match(/^`stress 10\+10: Botch: 1\/10`$/,roll_stress("10+10"))
+  end
+
+  def test_gen1
+    srand(1602262751)
+    assert_match(/total: advantage, failure, lightside`$/,roll_genesys('UGYBPRW'))
+  end
+
+  def test_gen1_post
+    post=Post.new('[genesys UGYBPRW]')
+    srand(1602262751)
+    $onblock.call(post)
+    assert_match(/USERNAME asked for a die roll:.*total: advantage, failure, lightside`$/m,post.raw)
+  end
+
+  def test_gen2
+    srand(1602262751)
+    assert_match(/total: success, 3 × advantage`$/,roll_genesys('GGYX'))
+  end
+
+  def test_gen2_multiplier
+    srand(1602262751)
+    assert_match(/total: success, 3 × advantage`$/,roll_genesys('G2YX'))
+  end
+
+  def test_gen2_spaces
+    srand(1602262751)
+    assert_match(/total: success, 3 × advantage`$/,roll_genesys('G2 Y'))
+  end
+
+  def test_gen3
+    srand(1602262755)
+    assert_match(/total: triumph, 4 × advantage, 3 × failure, despair`$/,roll_genesys('Y6R6'))
   end
 
 end
