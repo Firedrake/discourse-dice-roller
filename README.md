@@ -18,8 +18,21 @@ the linear range -1..1).
 Also add or subtract integers: `[roll 4d6+4]`, `[roll d10-1]`.
 
 Also `[stress 4]`, `[stress 4+7]` – this is an Ars Magica stress die.
-First parameter is the number of botch dice to be rolled, second is
-added to the total.
+First parameter is the number of botch dice to be rolled in case of a
+potential botch, second parameter is added to the total.
+
+Also `[genesys X]`, for the Genesys/Star Wars RPGs: X is a sequence of
+letters and numbers, with optional spaces. Results are both listed
+individually and summed.
+
+- U - blUe, boost die
+- U2 - 2 blue dice (etc.)
+- G - Green, ability die
+- Y - Yellow, proficiency die
+- B - Black, setback die
+- P - Purple, difficulty die
+- R - Red, challenge die
+- W - White, force die
 
 ## Installation
 
