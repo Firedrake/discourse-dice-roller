@@ -216,7 +216,7 @@ after_initialize do
             elsif roll==7
               r={'threat' => 2}
             elsif roll==8
-              r={'advantage' => 1,'threat' => 1}
+              r={'failure' => 1,'threat' => 1}
             end
           elsif i == 'R'
             roll=rand(1..12)

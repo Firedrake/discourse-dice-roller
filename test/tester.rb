@@ -118,6 +118,30 @@ class TestDice < Test::Unit::TestCase
     assert_match(/USERNAME asked for a die roll:.*total: advantage, failure, lightside`$/m,post.raw)
   end
 
+  def test_gen_blue
+    refute_match(/(failure|lightside|darkside|threat|despair|triumph)/,roll_genesys('U256'))
+  end
+
+  def test_gen_green
+    refute_match(/(failure|lightside|darkside|threat|despair|triumph)/,roll_genesys('G256'))
+  end
+
+  def test_gen_yellow
+    refute_match(/(failure|lightside|darkside|threat|despair)/,roll_genesys('Y256'))
+  end
+
+  def test_gen_black
+    refute_match(/(success|lightside|darkside|advantage|despair|triumph)/,roll_genesys('B256'))
+  end
+
+  def test_gen_purple
+    refute_match(/(success|lightside|darkside|advantage|despair|triumph)/,roll_genesys('P256'))
+  end
+
+  def test_gen_red
+    refute_match(/(success|lightside|darkside|advantage|triumph)/,roll_genesys('R256'))
+  end
+
   def test_gen2
     srand(1602262751)
     assert_match(/total: success, 3 × advantage`$/,roll_genesys('GGYX'))
