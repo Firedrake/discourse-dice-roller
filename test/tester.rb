@@ -162,4 +162,17 @@ class TestDice < Test::Unit::TestCase
     assert_match(/total: triumph, 4 × advantage, 3 × failure, despair`$/,roll_genesys('Y6R6'))
   end
 
+  def test_battle1
+    assert_match(/^`m44 1: .*`$/,roll_battle(""))
+  end
+
+  def test_battle2
+    assert_match(/^`m44 10: .*`$/,roll_battle("10"))
+  end
+
+  def test_battle3
+    srand(1602262755)
+    assert_match(/^`m44 10: 2 × Grenade, 2 × Infantry, 2 × Armor, Flag, 3 × Star`$/,roll_battle("10"))
+  end
+
 end

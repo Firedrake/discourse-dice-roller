@@ -246,7 +246,7 @@ after_initialize do
             end
           end
           reslist.push(r)
-          restext.push("#{i} #{dn[i]}: " + stringify_gendice(r))
+          restext.push("#{i} #{dn[i]}: " + stringify_hash(r))
         end
       end
     end
@@ -287,11 +287,11 @@ after_initialize do
         total.delete('threat')
       end
     end
-    restext.push("total: " + stringify_gendice(total))
+    restext.push("total: " + stringify_hash(total))
     return "`" + restext.join("`\n`") + "`"
   end
 
-  def stringify_gendice(r)
+  def stringify_hash(r)
     t='blank'
     unless r.empty?()
       t=r.keys.map {|k| r[k]==1?k:"#{r[k]} × #{k}"}.join(', ')
@@ -299,11 +299,41 @@ after_initialize do
     return t
   end
 
+  def roll_battle(count)
+    num = count.match(/([0-9]*)/i).captures[0]
+    if num.nil? or num.empty?
+      num = 1
+    else
+      num = num.to_i
+    end
+    results=Hash.new
+    1.upto(num) do
+       roll = rand(1..6)
+       res='Infantry'
+       if roll==3 then
+         res='Armor'
+       elsif roll==4 then
+         res='Grenade'
+       elsif roll==5 then
+         res='Star'
+       elsif roll==6 then
+         res='Flag'
+       end
+       if results.has_key?(res) then
+         results[res]+=1
+       else
+         results[res]=1
+       end
+    end
+    return "`m44 #{num}: " + stringify_hash(results) + "`"
+  end
+
   def inline_roll(post)
     post.raw = "@#{post.user.username} asked for a die roll:\n" + post.raw
     post.raw.gsub!(/\[ *roll [^\]]*?\]/i) { |c| roll_dice(c) }
     post.raw.gsub!(/\[ *stress [^\]]*?\]/i) { |c| roll_stress(c) }
     post.raw.gsub!(/\[ *genesys [^\]]*?\]/i) { |c| roll_genesys(c) }
+    post.raw.gsub!(/\[ *m44 [^\]]*?\]/i) { |c| roll_battle(c) }
     post.set_owner(User.find(-1), post.user)
   end
 
