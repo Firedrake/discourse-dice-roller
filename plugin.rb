@@ -291,14 +291,6 @@ after_initialize do
     return "`" + restext.join("`\n`") + "`"
   end
 
-  def stringify_hash(r)
-    t='blank'
-    unless r.empty?()
-      t=r.keys.map {|k| r[k]==1?k:"#{r[k]} × #{k}"}.join(', ')
-    end
-    return t
-  end
-
   def roll_battle(count)
     num=1
     if count != "" then
@@ -307,6 +299,7 @@ after_initialize do
         num=m[1]
       end
     end
+    
     if num.nil? then
       num = 1
     else
@@ -315,26 +308,87 @@ after_initialize do
     if num<1 then
       num = 1
     end
-    results=Hash.new
-    1.upto(num) do
-       roll = rand(1..6)
-       res='Infantry'
-       if roll==3 then
-         res='Armor'
-       elsif roll==4 then
-         res='Grenade'
-       elsif roll==5 then
-         res='Star'
-       elsif roll==6 then
-         res='Flag'
-       end
-       if results.has_key?(res) then
-         results[res]+=1
-       else
-         results[res]=1
-       end
-    end
+    results=mkpool(num,["Infantry","Infantry","Armor","Grenade","Star","Flag"])
     return "`battle #{num}: " + stringify_hash(results) + "`"
+  end
+
+  def roll_pool(type)
+    sa=Array.new
+    m=type.match(/([1-9][0-9]*) *; *(.+)/i)
+    if m.nil? then
+      m=type.match(/([0-9]*) *d *([0-9]+)/i);
+      if m.nil? then
+        return "invalid pool #{type}"
+      else
+        num, sides = m.captures
+        if num.nil? then
+          num = 1
+        else
+          num = num.to_i
+        end
+        if num<1 then
+          num = 1
+        end
+        sides=sides.to_i
+        sa=1.upto(sides).map{|i| i.to_s}
+      end
+    else
+      num, sides = m.captures
+      num = num.to_i
+      sa=sides.split(/ *, */)
+    end
+    results=mkpool(num,sa)
+    return "`pool #{num}: " + stringify_hash(results) + "`"
+  end
+
+  def roll_pool(type)
+    sa=Array.new
+    m=type.match(/([0-9]*) *d *([0-9]+)/i);
+    if m.nil? then
+      m=type.match(/([1-9][0-9]*) *; *(.+)/i)
+      if m.nil? then
+        return "invalid pool #{type}"
+      else
+        num, sides = m.captures
+        num = num.to_i
+        sa=sides.split(/ *, */)
+      end
+    else
+      num, sides = m.captures
+      if num.nil? then
+        num = 1
+      else
+        num = num.to_i
+      end
+      if num<1 then
+        num = 1
+      end
+      sides=sides.to_i
+      sa=1.upto(sides).map{|i| i.to_s}
+    end
+    results=mkpool(num,sa)
+    return "`pool #{num}: " + stringify_hash(results) + "`"
+  end
+
+  def mkpool(count,keys)
+    results=Hash.new
+    keys.each do |k|
+      results[k]=0
+    end
+    kl=keys.length
+    1.upto(count) do
+      results[keys[rand(kl)-1]]+=1
+    end
+    results.keys.map {|k| results[k]==0?results.delete(k):''}
+    return results
+  end
+
+  def stringify_hash(r)
+    t='blank'
+    unless r.empty?()
+      t=r.keys.map {|k| r[k]==1?k:"#{r[k]} × #{k}"}.join(', ')
+    end
+    return t
   end
 
   def inline_roll(post)
@@ -342,6 +396,7 @@ after_initialize do
     post.raw.gsub!(/\[ *roll [^\]]*?\]/i) { |c| roll_dice(c) }
     post.raw.gsub!(/\[ *stress [^\]]*?\]/i) { |c| roll_stress(c) }
     post.raw.gsub!(/\[ *genesys [^\]]*?\]/i) { |c| roll_genesys(c) }
+    post.raw.gsub!(/\[ *pool [^\]]*?\]/i) { |c| roll_pool(c) }
     post.raw.gsub!(/\[ *battle [^\]]*?\]/i) { |c| roll_battle(c) }
     post.set_owner(User.find(-1), post.user)
   end
@@ -351,7 +406,7 @@ after_initialize do
   end
 
   on(:post_created) do |post, params|
-    if SiteSetting.dice_roller_enabled and (post.raw =~ /\[ *roll *([0-9]* *d *[F%1-9][0-9]* *([-+] *[1-9][0-9]*)?) *\]/i or post.raw =~ /\[ *stress *([0-9]+ *([-+] *[0-9]+)?) *\]/i or post.raw =~ /\[ *genesys [A-Z0-9]+ *\]/i or post.raw =~ /\[ *battle [0-9]+ *\]/i)
+    if SiteSetting.dice_roller_enabled and (post.raw =~ /\[ *roll *([0-9]* *d *[F%1-9][0-9]* *([-+] *[1-9][0-9]*)?) *\]/i or post.raw =~ /\[ *stress *([0-9]+ *([-+] *[0-9]+)?) *\]/i or post.raw =~ /\[ *genesys [A-Z0-9]+ *\]/i or post.raw =~ /\[ *(pool|battle)/i)
       if SiteSetting.dice_roller_inline_rolls
         inline_roll(post)
       else

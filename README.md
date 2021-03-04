@@ -37,6 +37,13 @@ individually and summed.
 Also `[battle X]`, Memoir '44 battle dice. X is the number of dice to
 roll.
 
+More generally for dice pools: `[pool XdY]` (roll X dice each numbered
+from 1 to Y, collate the results)
+
+and for custom dice `[pool X;A,B,C]` (roll X dice each with custom
+faces A, B, C, collate the results); if a face should occur more
+often, duplicate it in the list.
+
 ## Installation
 
  * Add the plugin's repo url to your container's app.yml file

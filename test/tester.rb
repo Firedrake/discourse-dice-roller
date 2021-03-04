@@ -166,7 +166,7 @@ class TestDice < Test::Unit::TestCase
     post=Post.new('[battle 3]')
     srand(1602262750)
     $onblock.call(post)
-    assert_match(/USERNAME asked for a die roll:.*`battle 3: Grenade, Infantry, Armor`/m,post.raw)
+    assert_match(/USERNAME asked for a die roll:.*`battle 3: 2 × Infantry, Armor`/m,post.raw)
   end
 
   def test_battle1
@@ -179,7 +179,22 @@ class TestDice < Test::Unit::TestCase
 
   def test_battle3
     srand(1602262755)
-    assert_match(/^`battle 10: 2 × Grenade, 2 × Infantry, 2 × Armor, Flag, 3 × Star`$/,roll_battle("battle 10"))
+    assert_match(/^`battle 10: 3 × Infantry, 2 × Armor, 3 × Grenade, Star, Flag`$/,roll_battle("battle 10"))
+  end
+
+  def test_pool_xdy
+    assert_match(/^`pool 1000: (([0-9]+ ?)× [1-6](, )?)+`$/,roll_pool("1000d6"))
+  end
+
+  def test_pool_explicit
+    assert_match(/^`pool 1000: (([0-9]+ × )?[A-F](, )?)+`$/,roll_pool("1000;A,B,C,D,E,F"))
+  end
+
+  def test_pool_post
+    post=Post.new('[pool 10d10]')
+    srand(1602262750)
+    $onblock.call(post)
+    assert_match(/USERNAME asked for a die roll:.*`pool 10: (([0-9]+ × )?[0-9]+(, )?)+/m,post.raw)
   end
 
 end
