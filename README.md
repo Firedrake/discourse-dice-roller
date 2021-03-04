@@ -34,7 +34,7 @@ individually and summed.
 - R - Red, challenge die
 - W - White, force die
 
-Also `[m44 X]`, Memoir '44 battle dice. X is the number of dice to
+Also `[battle X]`, Memoir '44 battle dice. X is the number of dice to
 roll.
 
 ## Installation

@@ -300,11 +300,20 @@ after_initialize do
   end
 
   def roll_battle(count)
-    num = count.match(/([0-9]*)/i).captures[0]
-    if num.nil? or num.empty?
+    num=1
+    if count != "" then
+      m = count.match(/([0-9]+)/)
+      if !m.nil? then
+        num=m[1]
+      end
+    end
+    if num.nil? then
       num = 1
     else
       num = num.to_i
+    end
+    if num<1 then
+      num = 1
     end
     results=Hash.new
     1.upto(num) do
@@ -325,7 +334,7 @@ after_initialize do
          results[res]=1
        end
     end
-    return "`m44 #{num}: " + stringify_hash(results) + "`"
+    return "`battle #{num}: " + stringify_hash(results) + "`"
   end
 
   def inline_roll(post)
@@ -333,7 +342,7 @@ after_initialize do
     post.raw.gsub!(/\[ *roll [^\]]*?\]/i) { |c| roll_dice(c) }
     post.raw.gsub!(/\[ *stress [^\]]*?\]/i) { |c| roll_stress(c) }
     post.raw.gsub!(/\[ *genesys [^\]]*?\]/i) { |c| roll_genesys(c) }
-    post.raw.gsub!(/\[ *m44 [^\]]*?\]/i) { |c| roll_battle(c) }
+    post.raw.gsub!(/\[ *battle [^\]]*?\]/i) { |c| roll_battle(c) }
     post.set_owner(User.find(-1), post.user)
   end
 
@@ -342,7 +351,7 @@ after_initialize do
   end
 
   on(:post_created) do |post, params|
-    if SiteSetting.dice_roller_enabled and (post.raw =~ /\[ *roll *([0-9]* *d *[F%1-9][0-9]* *([-+] *[1-9][0-9]*)?) *\]/i or post.raw =~ /\[ *stress *([0-9]+ *([-+] *[0-9]+)?) *\]/i or post.raw =~ /\[ *genesys [A-Z0-9]+ *\]/i)
+    if SiteSetting.dice_roller_enabled and (post.raw =~ /\[ *roll *([0-9]* *d *[F%1-9][0-9]* *([-+] *[1-9][0-9]*)?) *\]/i or post.raw =~ /\[ *stress *([0-9]+ *([-+] *[0-9]+)?) *\]/i or post.raw =~ /\[ *genesys [A-Z0-9]+ *\]/i or post.raw =~ /\[ *battle [0-9]+ *\]/i)
       if SiteSetting.dice_roller_inline_rolls
         inline_roll(post)
       else
