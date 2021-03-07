@@ -314,7 +314,7 @@ after_initialize do
 
   def roll_pool(type)
     sa=Array.new
-    m=type.match(/([1-9][0-9]*) *; *(.+)/i)
+    m=type.match(/([1-9][0-9]*) *; *(.+) *\]/i)
     if m.nil? then
       m=type.match(/([0-9]*) *d *([0-9]+)/i);
       if m.nil? then
