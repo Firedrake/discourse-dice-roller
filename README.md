@@ -21,8 +21,8 @@ Also `[stress 4]`, `[stress 4+7]` – this is an Ars Magica stress die.
 First parameter is the number of botch dice to be rolled in case of a
 potential botch, second parameter is added to the total.
 
-Also `[genesys X]`, for the Genesys/Star Wars RPGs: X is a sequence of
-letters and numbers, with optional spaces. Results are both listed
+Also `[genesys X]`, for the _Genesys/Star Wars_ RPGs: X is a sequence
+of letters and numbers, with optional spaces. Results are both listed
 individually and summed.
 
 - U - blUe, boost die
@@ -34,8 +34,12 @@ individually and summed.
 - R - Red, challenge die
 - W - White, force die
 
-Also `[battle X]`, Memoir '44 battle dice. X is the number of dice to
-roll.
+Also `[totd X]`, for _Doctor Who: Time of the Daleks_. X is the
+colours of dice (B black, G green, U blue, R red), with multipliers as
+above: B4GU2 is four black, one green, two blue.
+
+Also `[battle X]`, _Memoir '44_ battle dice. X is the number of dice
+to roll.
 
 More generally for dice pools: `[pool XdY]` (roll X dice each numbered
 from 1 to Y, collate the results)

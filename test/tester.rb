@@ -93,12 +93,12 @@ class TestDice < Test::Unit::TestCase
 
   def test_stress_base
     srand(160226275)
-    assert_match(/^`stress 10\+10: 1 × 6 = 6, \+10 = total 16`$/,roll_stress("10+10"))
+    assert_match(/^`stress 10\+10: 1× 6 = 6, \+10 = total 16`$/,roll_stress("10+10"))
   end
 
   def test_stress_crit
     srand(160226293)
-    assert_match(/^`stress 10\+10: 4 × 7 = 28, \+10 = total 38`$/,roll_stress("10+10"))
+    assert_match(/^`stress 10\+10: 4× 7 = 28, \+10 = total 38`$/,roll_stress("10+10"))
   end
 
   def test_stress_botch
@@ -144,29 +144,29 @@ class TestDice < Test::Unit::TestCase
 
   def test_gen2
     srand(1602262751)
-    assert_match(/total: success, 3 × advantage`$/,roll_genesys('GGYX'))
+    assert_match(/total: success, 3× advantage`$/,roll_genesys('GGYX'))
   end
 
   def test_gen2_multiplier
     srand(1602262751)
-    assert_match(/total: success, 3 × advantage`$/,roll_genesys('G2YX'))
+    assert_match(/total: success, 3× advantage`$/,roll_genesys('G2YX'))
   end
 
   def test_gen2_spaces
     srand(1602262751)
-    assert_match(/total: success, 3 × advantage`$/,roll_genesys('G2 Y'))
+    assert_match(/total: success, 3× advantage`$/,roll_genesys('G2 Y'))
   end
 
   def test_gen3
     srand(1602262755)
-    assert_match(/total: triumph, 4 × advantage, 3 × failure, despair`$/,roll_genesys('Y6R6'))
+    assert_match(/total: triumph, 4× advantage, 3× failure, despair`$/,roll_genesys('Y6R6'))
   end
 
   def test_battle_post
     post=Post.new('[battle 3]')
     srand(1602262750)
     $onblock.call(post)
-    assert_match(/USERNAME asked for a die roll:.*`battle 3: 2 × Infantry, Armor`/m,post.raw)
+    assert_match(/USERNAME asked for a die roll:.*`battle 3: 2× Infantry, Armor`/m,post.raw)
   end
 
   def test_battle1
@@ -179,22 +179,46 @@ class TestDice < Test::Unit::TestCase
 
   def test_battle3
     srand(1602262755)
-    assert_match(/^`battle 10: 3 × Infantry, 2 × Armor, 3 × Grenade, Star, Flag`$/,roll_battle("battle 10"))
+    assert_match(/^`battle 10: 3× Infantry, 2× Armor, 3× Grenade, Star, Flag`$/,roll_battle("battle 10"))
   end
 
   def test_pool_xdy
-    assert_match(/^`pool 1000: (([0-9]+ ?)× [1-6](, )?)+`$/,roll_pool("1000d6"))
+    assert_match(/^`pool 1000d6: (([0-9]+ ?)× [1-6](, )?)+`$/,roll_pool("1000d6"))
   end
 
   def test_pool_explicit
-    assert_match(/^`pool 1000: (([0-9]+ × )?[A-F](, )?)+`$/,roll_pool("1000;A,B,C,D,E,F"))
+    assert_match(/^`pool 1000 custom: (([0-9]+× )?[A-F](, )?)+`$/,roll_pool("1000;A,B,C,D,E,F"))
   end
 
   def test_pool_post
     post=Post.new('[pool 10d10]')
     srand(1602262750)
     $onblock.call(post)
-    assert_match(/USERNAME asked for a die roll:.*`pool 10: (([0-9]+ × )?[0-9]+(, )?)+/m,post.raw)
+    assert_match(/@USERNAME asked for a die roll:\n`pool 10d10: (([0-9]+× )?[0-9]+(, )?)+/m,post.raw)
+  end
+
+  def test_totd1
+    srand(1602262751)
+    assert_match(/total: science, diplomacy, 3× strength, tactics`$/,roll_totd('BBBGUR'))
+  end
+
+  def test_totd1_post
+    post=Post.new('[totd BBBGUR]')
+    srand(1602262751)
+    $onblock.call(post)
+    assert_match(/USERNAME asked for a die roll:.*total: science, diplomacy, 3× strength, tactics`$/m,post.raw)
+  end
+
+  def test_totd_green
+    refute_match(/(science|cunning|strength)/,roll_totd('G256'))
+  end
+
+  def test_totd_blue
+    refute_match(/(running|tactics|strength)/,roll_totd('U256'))
+  end
+
+  def test_totd_red
+    refute_match(/(running|diplomacy|cunning)/,roll_totd('R256'))
   end
 
 end

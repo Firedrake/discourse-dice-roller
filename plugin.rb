@@ -119,7 +119,7 @@ after_initialize do
       else
         rm = roll * mul
         sum += rm
-        result += "#{mul} × #{roll} = #{rm}, #{delta_str} = total #{sum}"
+        result += "#{mul}× #{roll} = #{rm}, #{delta_str} = total #{sum}"
         done=1
       end
       first=0
@@ -155,6 +155,7 @@ after_initialize do
     end
     reslist=Array.new
     restext=Array.new
+    restext.push(stringify_hash(dice));
     dice.keys.each do |i|
       if dice[i]>0
         1.upto(dice[i]).each do
@@ -291,6 +292,80 @@ after_initialize do
     return "`" + restext.join("`\n`") + "`"
   end
 
+  def roll_totd(type)
+    dice=Hash.new
+    dn={ 'U' => 'blue', 'G' => 'green', 'R' => 'red',
+         'B' => 'black' }
+    rs=['running','diplomacy','science','cunning','tactics','strength']
+    dn.keys.each do |i|
+      dice[i]=0
+    end
+    dtype=''
+    type.split(/([A-Z]|[0-9]+)/i).each do |i|
+      if i != ''
+        if i.to_i > 0
+          if dice.has_key?(dtype)
+            dice[dtype] += i.to_i-1
+          end
+        else
+          j=i
+          j.capitalize
+          if dice.has_key?(j)
+            dtype=j
+            dice[dtype] += 1
+          end
+        end
+      end
+    end
+    reslist=Array.new
+    restext=Array.new
+    restext.push(stringify_hash(dice));
+    dice.keys.each do |i|
+      if dice[i]>0
+        1.upto(dice[i]).each do
+          r=Hash.new
+          roll=rand(0..5)
+          if i == 'B'
+            r={rs[roll] => 1}
+          elsif i == 'G'
+            s='running'
+            if (roll==3 or roll==4) then
+              s='diplomacy'
+            elsif roll==5
+              s='tactics'
+            end
+            r={s => 1}
+          elsif i == 'U'
+            s='science'
+            if (roll==3 or roll==4) then
+              s='cunning'
+            elsif roll==5
+              s='diplomacy'
+            end
+            r={s => 1}
+          elsif i == 'R'
+            s='strength'
+            if (roll==3 or roll==4) then
+              s='tactics'
+            elsif roll==5
+              s='science'
+            end
+            r={s => 1}
+          end
+          reslist.push(r)
+          restext.push("#{i} #{dn[i]}: " + stringify_hash(r))
+        end
+      end
+    end
+    total=Hash.new
+    total.default=(0)
+    reslist.each do |r|
+      total.merge!(r) {|k,o,n| o+n}
+    end
+    restext.push("total: " + stringify_hash(total))
+    return "`" + restext.join("`\n`") + "`"
+  end
+
   def roll_battle(count)
     num=1
     if count != "" then
@@ -314,13 +389,15 @@ after_initialize do
 
   def roll_pool(type)
     sa=Array.new
-    m=type.match(/([1-9][0-9]*) *; *(.+) *\]/i)
+    desc='unknown'
+    m=type.match(/([1-9][0-9]*) *; *(.+)( *\])?/i)
     if m.nil? then
       m=type.match(/([0-9]*) *d *([0-9]+)/i);
       if m.nil? then
         return "invalid pool #{type}"
       else
         num, sides = m.captures
+        desc="#{num}d#{sides}"
         if num.nil? then
           num = 1
         else
@@ -334,40 +411,12 @@ after_initialize do
       end
     else
       num, sides = m.captures
+      desc="#{num} custom"
       num = num.to_i
       sa=sides.split(/ *, */)
     end
     results=mkpool(num,sa)
-    return "`pool #{num}: " + stringify_hash(results) + "`"
-  end
-
-  def roll_pool(type)
-    sa=Array.new
-    m=type.match(/([0-9]*) *d *([0-9]+)/i);
-    if m.nil? then
-      m=type.match(/([1-9][0-9]*) *; *(.+)/i)
-      if m.nil? then
-        return "invalid pool #{type}"
-      else
-        num, sides = m.captures
-        num = num.to_i
-        sa=sides.split(/ *, */)
-      end
-    else
-      num, sides = m.captures
-      if num.nil? then
-        num = 1
-      else
-        num = num.to_i
-      end
-      if num<1 then
-        num = 1
-      end
-      sides=sides.to_i
-      sa=1.upto(sides).map{|i| i.to_s}
-    end
-    results=mkpool(num,sa)
-    return "`pool #{num}: " + stringify_hash(results) + "`"
+    return "`pool #{desc}: " + stringify_hash(results) + "`"
   end
 
   def mkpool(count,keys)
@@ -386,7 +435,7 @@ after_initialize do
   def stringify_hash(r)
     t='blank'
     unless r.empty?()
-      t=r.keys.map {|k| r[k]==1?k:"#{r[k]} × #{k}"}.join(', ')
+      t=r.keys.map {|k| r[k]==1?k:"#{r[k]}× #{k}"}.join(', ')
     end
     return t
   end
@@ -398,6 +447,7 @@ after_initialize do
     post.raw.gsub!(/\[ *genesys [^\]]*?\]/i) { |c| roll_genesys(c) }
     post.raw.gsub!(/\[ *pool [^\]]*?\]/i) { |c| roll_pool(c) }
     post.raw.gsub!(/\[ *battle [^\]]*?\]/i) { |c| roll_battle(c) }
+    post.raw.gsub!(/\[ *totd [^\]]*?\]/i) { |c| roll_totd(c) }
     post.set_owner(User.find(-1), post.user)
   end
 
@@ -406,7 +456,7 @@ after_initialize do
   end
 
   on(:post_created) do |post, params|
-    if SiteSetting.dice_roller_enabled and (post.raw =~ /\[ *roll *([0-9]* *d *[F%1-9][0-9]* *([-+] *[1-9][0-9]*)?) *\]/i or post.raw =~ /\[ *stress *([0-9]+ *([-+] *[0-9]+)?) *\]/i or post.raw =~ /\[ *genesys [A-Z0-9]+ *\]/i or post.raw =~ /\[ *(pool|battle)/i)
+    if SiteSetting.dice_roller_enabled and (post.raw =~ /\[ *roll *([0-9]* *d *[F%1-9][0-9]* *([-+] *[1-9][0-9]*)?) *\]/i or post.raw =~ /\[ *stress *([0-9]+ *([-+] *[0-9]+)?) *\]/i or post.raw =~ /\[ *genesys [A-Z0-9]+ *\]/i or post.raw =~ /\[ *(pool|battle|totd)/i)
       if SiteSetting.dice_roller_inline_rolls
         inline_roll(post)
       else
