@@ -390,9 +390,9 @@ after_initialize do
   def roll_pool(type)
     sa=Array.new
     desc='unknown'
-    m=type.match(/([1-9][0-9]*) *; *(.+)( *\])?/i)
+    m=type.match(/([1-9][0-9]*) *; *(.+?)( *\])?$/i)
     if m.nil? then
-      m=type.match(/([0-9]*) *d *([0-9]+)/i);
+      m=type.match(/([0-9]*) *d *([0-9]+?)( *\])?$/i);
       if m.nil? then
         return "invalid pool #{type}"
       else
@@ -435,7 +435,7 @@ after_initialize do
   def stringify_hash(r)
     t='blank'
     unless r.empty?()
-      t=r.keys.map {|k| r[k]==1?k:"#{r[k]}× #{k}"}.join(', ')
+      t=r.keys.find_all {|k| r[k]>0}.map {|k| r[k]==1?k:"#{r[k]}× #{k}"}.join(', ')
     end
     return t
   end

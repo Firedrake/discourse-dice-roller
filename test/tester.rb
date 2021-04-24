@@ -221,4 +221,8 @@ class TestDice < Test::Unit::TestCase
     refute_match(/(running|diplomacy|cunning)/,roll_totd('R256'))
   end
 
+  def test_totd_no_zero
+    refute_match(/0×/,roll_totd('R2'))
+  end
+
 end
